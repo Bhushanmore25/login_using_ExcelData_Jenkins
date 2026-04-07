@@ -12,12 +12,17 @@ public class FeatureFileGenerator {
         String excelPath = "src/test/resources/testdata/loginData.xlsx";
         String featurePath = "src/test/resources/features/generatedLogin.feature";
 
-        try {
-            FileInputStream file = new FileInputStream(excelPath);
-            XSSFWorkbook workbook = new XSSFWorkbook(file);
+        try (FileInputStream file = new FileInputStream(excelPath);
+                XSSFWorkbook workbook = new XSSFWorkbook(file);
+                BufferedWriter writer = new BufferedWriter(new FileWriter(featurePath))) {
+
             XSSFSheet sheet = workbook.getSheet("Sheet1");
 
-            BufferedWriter writer = new BufferedWriter(new FileWriter(featurePath));
+            // ✅ Check if sheet exists
+            if (sheet == null) {
+                System.out.println("Sheet not found!");
+                return;
+            }
 
             // Write Feature Header
             writer.write("Feature: DemoQA Login\n\n");
@@ -26,9 +31,27 @@ public class FeatureFileGenerator {
 
             for (int i = 1; i < rows; i++) {
 
-                String username = sheet.getRow(i).getCell(0).toString();
-                String password = sheet.getRow(i).getCell(1).toString();
-                String result = sheet.getRow(i).getCell(2).toString();
+                XSSFRow row = sheet.getRow(i);
+
+                // ✅ Skip null rows
+                if (row == null) {
+                    System.out.println("Skipping empty row: " + i);
+                    continue;
+                }
+
+                XSSFCell usernameCell = row.getCell(0);
+                XSSFCell passwordCell = row.getCell(1);
+                XSSFCell resultCell = row.getCell(2);
+
+                // ✅ Skip null cells
+                if (usernameCell == null || passwordCell == null || resultCell == null) {
+                    System.out.println("Skipping incomplete row: " + i);
+                    continue;
+                }
+
+                String username = usernameCell.toString().trim();
+                String password = passwordCell.toString().trim();
+                String result = resultCell.toString().trim();
 
                 writer.write("Scenario: Login with user " + username + "\n");
                 writer.write("  Given user is on login page\n");
@@ -36,9 +59,6 @@ public class FeatureFileGenerator {
                 writer.write("  And clicks on login button\n");
                 writer.write("  Then login result should be \"" + result + "\"\n\n");
             }
-
-            writer.close();
-            workbook.close();
 
             System.out.println("Feature file generated successfully!");
 
