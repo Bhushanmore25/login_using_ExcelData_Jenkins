@@ -1,7 +1,0 @@
-runner\TestSetup.class
-stepDefinitions\LoginSteps.class
-utils\DriverFactory.class
-utils\FeatureFileGenerator.class
-utils\ExtentManager.class
-hooks\Hooks.class
-runner\TestRunner.class
